@@ -1,0 +1,13 @@
+CREATE DATABASE db;
+USE db;
+
+CREATE TABLE user (
+id INT PRIMARY KEY AUTO_INCREMENT,
+name NVARCHAR(20),
+lastName NVARCHAR(20),
+email NVARCHAR(20),
+age INT,
+password NVARCHAR(20)
+
+);
+

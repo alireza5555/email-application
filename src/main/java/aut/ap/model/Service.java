@@ -2,6 +2,7 @@ package aut.ap.model;
 
 import aut.ap.framework.SingletonSessionFactory;
 import com.sun.jdi.request.DuplicateRequestException;
+import jakarta.persistence.Id;
 import jakarta.persistence.NoResultException;
 
 import java.util.List;
@@ -11,13 +12,12 @@ public class Service {
 
     public static String submit (String name, String lastName,String password, int age, String email){
 
-
-
         SingletonSessionFactory.get().inTransaction(session -> session.persist(new User(email,age,lastName,name,password)));
-        return "You have been singed up successfully.";
+        return "Your new account is created.\nGo ahead and login!";
     }
 
     private static boolean emailCheck (String email){
+        email = normalizeEmail(email);
             List<String> allUsers = SingletonSessionFactory.get().fromTransaction(session -> session.createNativeQuery("SELECT email FROM user").getResultList());
         for (String temp : allUsers){
             if(temp.equals(email)) return true;
@@ -52,16 +52,30 @@ public class Service {
 
     public static void login()throws NoResultException {
         Scanner scn = new Scanner(System.in);
-        System.out.println("enter your username");
+        System.out.println("enter your email");
         String userName = scn.nextLine();
+        userName = normalizeEmail(userName);
         System.out.println("enter your password");
         String password = scn.nextLine();
 
-        User u = SingletonSessionFactory.get().fromTransaction(session -> session.createNativeQuery("SELECT * FROM user " + "WHERE email = :userName", User.class).setParameter("userName", userName).getSingleResult());
+        String finalUserName = userName;
+        User u = SingletonSessionFactory.get().fromTransaction(session -> session.createNativeQuery("SELECT * FROM user " + "WHERE email = :userName", User.class).setParameter("userName", finalUserName).getSingleResult());
 
         if (u.password.equals(password)) {
             System.out.println("Welcome, " + u.name + " " + u.lastName + "!");
         }
         else throw new IllegalArgumentException("Wrong password");
+    }
+
+    public static String normalizeEmail(String email){
+        email = email.trim();
+        if(email.contains("@")) {
+            if(email.endsWith("@milou.com"))  return email;
+            throw new IllegalArgumentException("Your domain must be @milou.com");
+           }
+
+        else {
+            return email + "@milou.com";
+        }
     }
 }

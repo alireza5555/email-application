@@ -60,11 +60,11 @@ public class Service {
         String password = scn.nextLine();
 
         String finalUserName = userName;
-        User u = SingletonSessionFactory.get().fromTransaction(session -> session.createNativeQuery("SELECT * FROM user " + "WHERE email = :userName", User.class).setParameter("userName", finalUserName).getSingleResult());
+        User user = SingletonSessionFactory.get().fromTransaction(session -> session.createNativeQuery("SELECT * FROM user " + "WHERE email = :userName", User.class).setParameter("userName", finalUserName).getSingleResult());
 
-        if (u.password.equals(password)) {
-            System.out.println("Welcome, " + u.name + " " + u.lastName + "!");
-            return u;
+        if (user.getPassword().equals(password)) {
+            System.out.println("Welcome, " + user.getName() + " " + user.getLastName() + "!");
+            return user;
         }
         else throw new IllegalArgumentException("Wrong password");
     }
@@ -109,7 +109,7 @@ public class Service {
         System.out.println("Enter your Email body (press enter at the end of the text)");
         body = scn.nextLine();
 
-        Email email = new Email(subject, u.getName, body, recipients);
+        Email email = new Email(subject, user.getName(), body, recipients);
         String code = email.getCode();
         Email.box.put(code, email);
 

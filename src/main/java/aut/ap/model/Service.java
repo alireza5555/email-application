@@ -5,6 +5,7 @@ import com.sun.jdi.request.DuplicateRequestException;
 import jakarta.persistence.Id;
 import jakarta.persistence.NoResultException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -50,7 +51,7 @@ public class Service {
     }
 
 
-    public static void login()throws NoResultException {
+    public static User login()throws NoResultException {
         Scanner scn = new Scanner(System.in);
         System.out.println("enter your email");
         String userName = scn.nextLine();
@@ -63,6 +64,7 @@ public class Service {
 
         if (u.password.equals(password)) {
             System.out.println("Welcome, " + u.name + " " + u.lastName + "!");
+            return u;
         }
         else throw new IllegalArgumentException("Wrong password");
     }
@@ -77,5 +79,40 @@ public class Service {
         else {
             return email + "@milou.com";
         }
+    }
+
+    public static void sendEmail(User user){
+        Scanner scn = new Scanner(System.in);
+
+        ArrayList<String> recipients = new ArrayList<>();
+        String subject;
+        String body;
+
+
+        System.out.println("enter the email of recipient");
+        boolean flag = true;
+        String temp = scn.nextLine();
+        while(flag) {
+            try {
+                recipients.add(normalizeEmail(temp));
+            } catch (IllegalArgumentException e) {
+                System.err.println(e.getMessage());
+            }
+            System.out.println("Do you want to add another recipient?\nSend their email\n otherwise send: 0");
+            temp = scn.nextLine();
+            if(temp.equals("0"))flag = false;
+
+        }
+        System.out.println("Enter your subject:");
+        subject = scn.nextLine();
+
+        System.out.println("Enter your Email body (press enter at the end of the text)");
+        body = scn.nextLine();
+
+        Email email = new Email(subject, u.getName, body, recipients);
+        String code = email.getCode();
+        Email.box.put(code, email);
+
+        System.out.println("Successfully sent your email.\n" + "Code: " + code);
     }
 }

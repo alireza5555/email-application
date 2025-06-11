@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Email {
-    private static HashMap<String,Email> box = new HashMap<>();
+    protected static HashMap<String,Email> box = new HashMap<>();
     private static String currentCode = "0";
 
     private ArrayList<String> recipients;

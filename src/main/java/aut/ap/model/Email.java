@@ -1,6 +1,5 @@
 package aut.ap.model;
 
-import aut.ap.email_behavior.*;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;

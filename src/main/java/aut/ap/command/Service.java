@@ -2,31 +2,14 @@ package aut.ap.command;
 
 import aut.ap.framework.SingletonSessionFactory;
 import aut.ap.model.Email;
+import aut.ap.model.Recipients;
 import aut.ap.model.User;
 import jakarta.persistence.NoResultException;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
 public class Service {
-
-    public static String submit (String name, String lastName,String password, int age, String email){
-
-        SingletonSessionFactory.get().inTransaction(session -> session.persist(new User(email,age,lastName,name,password)));
-        return "Your new account is created.\nGo ahead and login!";
-    }
-
-    private static boolean emailCheck (String email){
-        email = normalizeEmail(email);
-            List<String> allUsers = SingletonSessionFactory.get().fromTransaction(session -> session.createNativeQuery("SELECT email FROM user").getResultList());
-        for (String temp : allUsers){
-            if(temp.equals(email)) return true;
-        }
-        return false;
-
-    }
-
     public static void singUp(){
         Scanner scn = new Scanner(System.in);
         System.out.println("enter your  first name");
@@ -47,8 +30,9 @@ public class Service {
         String email = scn.nextLine();
         if(emailCheck(email)) throw new IllegalArgumentException("An account with this email already exists");
 
-       submit(name, lastName,password,age,email);
+        submit(name, lastName,password,age,email);
     }
+
 
 
     public static User login()throws NoResultException {
@@ -60,7 +44,8 @@ public class Service {
         String password = scn.nextLine();
 
         String finalUserName = userName;
-        User user = SingletonSessionFactory.get().fromTransaction(session -> session.createNativeQuery("SELECT * FROM user " + "WHERE email = :userName", User.class).setParameter("userName", finalUserName).getSingleResult());
+        User user = SingletonSessionFactory.get().fromTransaction(session -> session.createNativeQuery
+                ("SELECT * FROM user " + "WHERE email = :userName", User.class).setParameter("userName", finalUserName).getSingleResult());
 
         if (user.getPassword().equals(password)) {
             System.out.println("Welcome, " + user.getName() + " " + user.getLastName() + "!");
@@ -69,17 +54,7 @@ public class Service {
         else throw new IllegalArgumentException("Wrong password");
     }
 
-    public static String normalizeEmail(String email){
-        email = email.trim();
-        if(email.contains("@")) {
-            if(email.endsWith("@milou.com"))  return email;
-            throw new IllegalArgumentException("Your domain must be @milou.com");
-           }
 
-        else {
-            return email + "@milou.com";
-        }
-    }
 
     public static void sendEmail(User user){
         Scanner scn = new Scanner(System.in);
@@ -109,10 +84,52 @@ public class Service {
         System.out.println("Enter your Email body (press enter at the end of the text)");
         body = scn.nextLine();
 
-        Email email = new Email(subject, user.getName(), body, recipients);
-        String code = email.getCode();
-        Email.box.put(code, email);
+        Email temp2 = new Email(subject, user.getEmail(), body);
+        try {
+            SingletonSessionFactory.get().inTransaction(session -> {
+                session.persist(temp2);
+                recipients.forEach(recipient ->session.persist(new Recipients(temp2.getCode() ,recipient)));
+            });
+        }
+        catch (Exception e){
+            System.err.println(e.getMessage());
+        }
 
-        System.out.println("Successfully sent your email.\n" + "Code: " + code);
+        System.out.println("Successfully sent your email.\n" + "Code: " + temp2.getCode());
+    }
+
+
+
+
+    public static String normalizeEmail(String email){
+        email = email.trim();
+        if(email.contains("@")) {
+            if(email.endsWith("@milou.com"))  return email;
+            throw new IllegalArgumentException("Your domain must be @milou.com");
+           }
+
+        else {
+            return email + "@milou.com";
+        }
+    }
+
+
+
+    public static String submit (String name, String lastName,String password, int age, String email){
+        SingletonSessionFactory.get().inTransaction(session -> session.persist(new User(email,age,lastName,name,password)));
+        return "Your new account is created.\nGo ahead and login!";
+    }
+
+
+
+    private static boolean emailCheck (String email){
+        email = normalizeEmail(email);
+        List<String> allUsers =
+                SingletonSessionFactory.get().fromTransaction(session -> session.createNativeQuery("SELECT email FROM user").getResultList());
+        for (String temp : allUsers){
+            if(temp.equals(email)) return true;
+        }
+        return false;
+
     }
 }

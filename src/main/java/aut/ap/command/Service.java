@@ -1,8 +1,8 @@
-package aut.ap.model;
+package aut.ap.command;
 
 import aut.ap.framework.SingletonSessionFactory;
-import com.sun.jdi.request.DuplicateRequestException;
-import jakarta.persistence.Id;
+import aut.ap.model.Email;
+import aut.ap.model.User;
 import jakarta.persistence.NoResultException;
 
 import java.util.ArrayList;

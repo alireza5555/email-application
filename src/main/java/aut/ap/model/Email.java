@@ -1,50 +1,51 @@
 package aut.ap.model;
 
 import aut.ap.email_behavior.*;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
-
+@Entity
+@Table(name = "email")
 public class Email {
-    protected static HashMap<String,Email> box = new HashMap<>();
+
     private static String currentCode = "0";
 
-    private ArrayList<String> recipients;
+    @Id
     private String code ;
     private String subject;
     private LocalDate date;
-    private Status status;
     private String sender;
     private String body;
 
-    public Email ( String subject, String sender, String body, ArrayList<String> recipients){
+    public Email ( String subject, String sender, String body){
         this.body = body;
         this.sender = sender;
         this.subject = subject;
-        this.recipients = recipients;
+        this.date = LocalDate.now();
 
         codeGenerator();
     }
+
+    public Email (){};
 
     private void codeGenerator(){
         int temp = Integer.parseInt(currentCode, 36);
         temp ++ ;
         currentCode = Integer.toString(temp, 36);
         currentCode = String.format("%6s", currentCode).replace(' ', '0');
+        this.code = currentCode;
     }
 
-    public static HashMap<String, Email> getBox() {
-        return box;
-    }
 
     public static String getCurrentCode() {
         return currentCode;
     }
 
-    public ArrayList<String> getRecipients() {
-        return recipients;
-    }
 
     public String getCode() {
         return code;
@@ -58,9 +59,6 @@ public class Email {
         return date;
     }
 
-    public Status getStatus() {
-        return status;
-    }
 
     public String getSender() {
         return sender;
@@ -75,9 +73,6 @@ public class Email {
         Email.currentCode = currentCode;
     }
 
-    public void setRecipients(ArrayList<String> recipients) {
-        this.recipients = recipients;
-    }
 
     public void setCode(String code) {
         this.code = code;
@@ -91,9 +86,6 @@ public class Email {
         this.date = date;
     }
 
-    public void setStatus(Status status) {
-        this.status = status;
-    }
 
     public void setSender(String sender) {
         this.sender = sender;

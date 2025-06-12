@@ -1,8 +1,5 @@
-package aut.ap;
-import aut.ap.model.Service;
+package aut.ap.command;
 import aut.ap.model.User;
-import org.hibernate.SessionFactory;
-import org.hibernate.cfg.Configuration;
 
 import java.util.Scanner;
 

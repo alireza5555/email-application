@@ -40,6 +40,11 @@ public class Email {
         this.code = currentCode;
     }
 
+    @Override
+    public String toString(){
+       return sender + " - " + subject + " - (" + code + ")";
+    }
+
 
     public static String getCurrentCode() {
         return currentCode;

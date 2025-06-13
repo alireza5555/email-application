@@ -8,6 +8,7 @@ import jakarta.persistence.NoResultException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class Service {
     public static void singUp(){
@@ -48,7 +49,16 @@ public class Service {
                 ("SELECT * FROM user " + "WHERE email = :userName", User.class).setParameter("userName", finalUserName).getSingleResult());
 
         if (user.getPassword().equals(password)) {
-            System.out.println("Welcome, " + user.getName() + " " + user.getLastName() + "!");
+            System.out.println("Welcome, " + user.getName() + " " + user.getLastName() + "!\n");
+           List<Object[]> emailList =  SingletonSessionFactory.get().fromTransaction(
+                   session -> session.createNativeQuery("SELECT e.code,e.subject,r.email FROM recipients r"
+                           + "JOIN email e ON r.code = e.code"
+                           +"WHERE status = UNREAD"
+                   +"ORDER BY e.date DESC" )).getResultList();
+           for(Object[] temp:emailList){
+               System.out.println("+" + temp[2] + " - " + temp[1] + " - (" + temp[0] + ")");
+           }
+
             return user;
         }
         else throw new IllegalArgumentException("Wrong password");
@@ -86,7 +96,7 @@ public class Service {
 
         Email temp2 = new Email(subject, user.getEmail(), body);
         try {
-            SingletonSessionFactory.get().inTransaction(session -> {
+                SingletonSessionFactory.get().inTransaction(session -> {
                 session.persist(temp2);
                 recipients.forEach(recipient ->session.persist(new Recipients(temp2.getCode() ,recipient)));
             });
@@ -98,6 +108,62 @@ public class Service {
         System.out.println("Successfully sent your email.\n" + "Code: " + temp2.getCode());
     }
 
+
+
+    public static void showAllEmails(User user , String userInput){
+        AtomicReference<String> command = new AtomicReference<>("");
+
+        switch (userInput){
+            case "all":
+                command.set("WHERE r.email = :email");
+                break;
+            case "unread":
+                command.set("WHERE r.email = :email AND status = UNREAD");
+                break;
+            case "read":
+                command.set("WHERE r.email = :email AND status = READ");
+                break;
+            case "sent":
+                command.set("WHERE e.sender = :sender");
+                break;
+
+        }
+
+        List<Object[]> emailList =  SingletonSessionFactory.get().fromTransaction(
+                session -> session.createNativeQuery("SELECT e.code,e.subject,r.email FROM recipients r"
+                        +"JOIN email e ON r.code = e.code "
+                        + command.get()
+                        +" ORDER BY e.date DESC" )).setParameter("sender", user.getEmail()).setParameter("email",user.getEmail()).getResultList();
+
+        for(Object[] temp:emailList){
+            System.out.println("+" + temp[2] + " - " + temp[1] + " - (" + temp[0] + ")");
+        }
+    }
+
+
+    public static void showWithCode (User user, String code){
+
+        List<String> temp ;
+        temp = SingletonSessionFactory.get().fromTransaction(
+                session -> session.createNativeQuery("SELECT r.email FROM recipients r "
+                        + " JOIN email e ON r.code = e.code "
+                        + " WHERE r.code = :code ",String.class).setParameter("code", code)).getResultList();
+        Email email = SingletonSessionFactory.get().fromTransaction(session -> session.createNativeQuery("SELECT * FROM email" +
+                " WHERE code = :code ", Email.class).setParameter("code",code).getSingleResult());
+
+        temp.add(email.getSender());
+
+        for(String customer : temp){
+                 if(customer.equals(user.getEmail())){
+                 email.showInf(temp);
+                 SingletonSessionFactory.get().inTransaction(session -> session.createMutationQuery("UPDATE recipients SET status = 'READ'" +
+                 " WHERE email = :email AND code = :code").setParameter("code",code).setParameter("email", user.getEmail()).executeUpdate());
+        return;
+    }
+}
+       System.out.println("You cannot read this email.");
+
+    }
 
 
 
@@ -126,10 +192,16 @@ public class Service {
         email = normalizeEmail(email);
         List<String> allUsers =
                 SingletonSessionFactory.get().fromTransaction(session -> session.createNativeQuery("SELECT email FROM user").getResultList());
+
         for (String temp : allUsers){
             if(temp.equals(email)) return true;
         }
         return false;
 
     }
+
+
+
+
+
 }

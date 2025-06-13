@@ -1,13 +1,12 @@
 package aut.ap.model;
 
-import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.List;
+
 @Entity
 @Table(name = "email")
 public class Email {
@@ -45,6 +44,16 @@ public class Email {
        return sender + " - " + subject + " - (" + code + ")";
     }
 
+    public void showInf(List<String> recipients){
+        System.out.println("=================================\n");
+        System.out.println("Code: (" + getCode() + ")\nSender: " + getSender() + "\nRecipients: ");
+        for (String temp : recipients){
+            System.out.print(temp + ", ");
+        }
+        System.out.println("\nSubject: " + getSubject() + "\nDate: " + getDate());
+        System.out.println("\n" + getBody() + "\n");
+        System.out.println("=================================");
+    }
 
     public static String getCurrentCode() {
         return currentCode;

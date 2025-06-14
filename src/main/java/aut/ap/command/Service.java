@@ -83,6 +83,7 @@ public class Service {
             } catch (IllegalArgumentException e) {
                 System.err.println(e.getMessage());
             }
+
             System.out.println("Do you want to add another recipient?\nSend their email\n otherwise send: 0");
             temp = scn.nextLine();
             if(temp.equals("0"))flag = false;
@@ -94,16 +95,7 @@ public class Service {
         System.out.println("Enter your Email body (press enter at the end of the text)");
         body = scn.nextLine();
 
-        Email temp2 = new Email(subject, user.getEmail(), body);
-        try {
-                SingletonSessionFactory.get().inTransaction(session -> {
-                session.persist(temp2);
-                recipients.forEach(recipient ->session.persist(new Recipients(temp2.getCode() ,recipient)));
-            });
-        }
-        catch (Exception e){
-            System.err.println(e.getMessage());
-        }
+        Email temp2 = addEmailToDB(user, subject, body, recipients);
 
         System.out.println("Successfully sent your email.\n" + "Code: " + temp2.getCode());
     }
@@ -143,13 +135,8 @@ public class Service {
 
     public static void showWithCode (User user, String code){
 
-        List<String> temp ;
-        temp = SingletonSessionFactory.get().fromTransaction(
-                session -> session.createNativeQuery("SELECT r.email FROM recipients r "
-                        + " JOIN email e ON r.code = e.code "
-                        + " WHERE r.code = :code ",String.class).setParameter("code", code)).getResultList();
-        Email email = SingletonSessionFactory.get().fromTransaction(session -> session.createNativeQuery("SELECT * FROM email" +
-                " WHERE code = :code ", Email.class).setParameter("code",code).getSingleResult());
+        List<String> temp = getRecipients(code);
+        Email email = getEmail(code);
 
         temp.add(email.getSender());
 
@@ -160,8 +147,29 @@ public class Service {
                  " WHERE email = :email AND code = :code").setParameter("code",code).setParameter("email", user.getEmail()).executeUpdate());
         return;
     }
-}
+    }
        System.out.println("You cannot read this email.");
+
+    }
+
+
+    public static void replay(User user){
+        Scanner scn = new Scanner(System.in);
+
+        System.out.println("Enter the code of email that you want to respond: ");
+        String code = scn.nextLine();
+
+        System.out.println("Enter your respond text: ");
+        String body = scn.nextLine();
+
+        Email oldEmail = getEmail(code);
+        addEmailToDB(user, "[RE] " + oldEmail.getSubject(), body,getRecipients(code) );
+
+    }
+
+    private static Email getEmail(String code) {
+        return SingletonSessionFactory.get().fromTransaction(session -> session.createNativeQuery("SELECT * FROM email" +
+                " WHERE code = :code ", Email.class).setParameter("code", code).getSingleResult());
 
     }
 
@@ -181,7 +189,7 @@ public class Service {
 
 
 
-    public static String submit (String name, String lastName,String password, int age, String email){
+    private static String submit (String name, String lastName,String password, int age, String email){
         SingletonSessionFactory.get().inTransaction(session -> session.persist(new User(email,age,lastName,name,password)));
         return "Your new account is created.\nGo ahead and login!";
     }
@@ -198,6 +206,29 @@ public class Service {
         }
         return false;
 
+    }
+
+    private static Email addEmailToDB(User user, String subject, String body, List<String> recipients) {
+        Email temp2 = new Email(subject, user.getEmail(), body);
+        try {
+            SingletonSessionFactory.get().inTransaction(session -> {
+                session.persist(temp2);
+                recipients.forEach(recipient ->session.persist(new Recipients(temp2.getCode() ,recipient)));
+            });
+        }
+        catch (Exception e){
+            System.err.println(e.getMessage());
+        }
+        return temp2;
+    }
+
+    private static List<String> getRecipients(String code) {
+        List<String> temp ;
+        temp = SingletonSessionFactory.get().fromTransaction(
+                session -> session.createNativeQuery("SELECT r.email FROM recipients r "
+                        + " JOIN email e ON r.code = e.code "
+                        + " WHERE r.code = :code ",String.class).setParameter("code", code)).getResultList();
+        return temp;
     }
 
 

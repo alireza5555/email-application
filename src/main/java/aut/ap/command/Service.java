@@ -69,26 +69,11 @@ public class Service {
     public static void sendEmail(User user){
         Scanner scn = new Scanner(System.in);
 
-        ArrayList<String> recipients = new ArrayList<>();
+        ArrayList<String> recipients = recordRecipients();
+
         String subject;
         String body;
 
-
-        System.out.println("enter the email of recipient");
-        boolean flag = true;
-        String temp = scn.nextLine();
-        while(flag) {
-            try {
-                recipients.add(normalizeEmail(temp));
-            } catch (IllegalArgumentException e) {
-                System.err.println(e.getMessage());
-            }
-
-            System.out.println("Do you want to add another recipient?\nSend their email\n otherwise send: 0");
-            temp = scn.nextLine();
-            if(temp.equals("0"))flag = false;
-
-        }
         System.out.println("Enter your subject:");
         subject = scn.nextLine();
 
@@ -153,7 +138,7 @@ public class Service {
     }
 
 
-    public static void replay(User user){
+    public static void reply(User user){
         Scanner scn = new Scanner(System.in);
 
         System.out.println("Enter the code of email that you want to respond: ");
@@ -163,16 +148,46 @@ public class Service {
         String body = scn.nextLine();
 
         Email oldEmail = getEmail(code);
-        addEmailToDB(user, "[RE] " + oldEmail.getSubject(), body,getRecipients(code) );
+        Email newEmail = addEmailToDB(user, "[RE] " + oldEmail.getSubject(), body,getRecipients(code) );
 
+        System.out.println("Successfully sent your reply to email " + oldEmail.getCode() + "\nCode: " + newEmail.getCode());
     }
 
-    private static Email getEmail(String code) {
-        return SingletonSessionFactory.get().fromTransaction(session -> session.createNativeQuery("SELECT * FROM email" +
-                " WHERE code = :code ", Email.class).setParameter("code", code).getSingleResult());
 
+    public static void forwardEmail(User user){
+        Scanner scn = new Scanner(System.in);
+        System.out.println("Enter the code of your email: ");
+        String code = scn.nextLine();
+
+        List<String> userList = SingletonSessionFactory.get().fromTransaction(session -> session.createNativeQuery(
+                "SELECT r.email FROM recipients r " + "WHERE r.code = :code",String.class).setParameter("code", code).getResultList());
+
+        Boolean flag = true;
+        for (String temp : userList){
+            if(temp.equals(user.getEmail())){
+                flag = false;
+                break;
+            }
+        }
+
+        if(flag){
+            System.err.println("You cannot forward this email");
+            return;
+        }
+
+        Email oldEmail = getEmail(code);
+        ArrayList<String> recipients = recordRecipients();
+        Email newEmail = addEmailToDB(user, "[FW] " + oldEmail.getSubject(), oldEmail.getBody(), recipients);
+        System.out.println("Successfully forwarded your email.\n" + "Code: " + newEmail.getCode());
     }
 
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+private static Email getEmail(String code) {
+    return SingletonSessionFactory.get().fromTransaction(session -> session.createNativeQuery("SELECT * FROM email" +
+            " WHERE code = :code ", Email.class).setParameter("code", code).getSingleResult());
+
+}
 
 
     public static String normalizeEmail(String email){
@@ -232,6 +247,28 @@ public class Service {
     }
 
 
+    private static ArrayList<String> recordRecipients() {
+        Scanner scn = new Scanner(System.in);
+        ArrayList<String> recipients = new ArrayList<>();
+
+
+        System.out.println("enter the email of recipient");
+        boolean flag = true;
+        String temp = scn.nextLine();
+        while(flag) {
+            try {
+                recipients.add(normalizeEmail(temp));
+            } catch (IllegalArgumentException e) {
+                System.err.println(e.getMessage());
+            }
+
+            System.out.println("Do you want to add another recipient?\nSend their email\n otherwise send: 0");
+            temp = scn.nextLine();
+            if(temp.equals("0"))flag = false;
+
+        }
+        return recipients;
+    }
 
 
 

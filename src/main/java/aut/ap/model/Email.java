@@ -86,7 +86,7 @@ public class Email {
 
 
     public static void setCurrentCode(String currentCode) {
-        SingletonSessionFactory.get().inTransaction(session -> session.createMutationQuery("UPDATE code SET current_code = :code").setParameter("code", currentCode).executeUpdate());
+        SingletonSessionFactory.get().inTransaction(session -> session.createMutationQuery("UPDATE Code SET current_code = :code").setParameter("code", currentCode).executeUpdate());
     }
 
 

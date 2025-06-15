@@ -165,6 +165,11 @@ public class Service {
         System.out.println("Enter your respond text: ");
         String body = scn.nextLine();
 
+        if(checkUser(code, user.getEmail())){
+            System.err.println("You cannot reply this email.");
+            return;
+        }
+
         Email oldEmail = getEmail(code);
         Email newEmail = addEmailToDB(user, "[RE] " + oldEmail.getSubject(), body,getRecipients(code) );
 
@@ -293,6 +298,24 @@ private static Email getEmail(String code)throws NoResultException {
         }
         return recipients;
     }
+
+
+    private static boolean checkUser(String code, String email) {
+        try {
+            SingletonSessionFactory.get().fromTransaction(session ->
+                    session.createNativeQuery(
+                                    "SELECT email FROM recipients WHERE code = :code AND email = :email",
+                                    String.class)
+                            .setParameter("code", code)
+                            .setParameter("email", email)
+                            .getSingleResult()
+            );
+            return false;
+        } catch (NoResultException e) {
+            return true;
+        }
+    }
+
 
 
 

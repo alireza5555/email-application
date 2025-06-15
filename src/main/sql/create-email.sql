@@ -1,10 +1,10 @@
 USE db;
 
 CREATE TABLE email(
-code NVARCHAR(30) PRIMARY KEY,
-subject NVARCHAR(30),
+code NVARCHAR(6) PRIMARY KEY,
+subject NVARCHAR(100),
 date DATE ,
-sender NVARCHAR(),
-body NVARCHAR(MAX)
+sender NVARCHAR(30),
+body NVARCHAR(255)
 );
 

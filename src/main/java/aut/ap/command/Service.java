@@ -11,7 +11,7 @@ import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Service {
-    public static void singUp(){
+    public static void singUp()throws IllegalArgumentException{
         Scanner scn = new Scanner(System.in);
         System.out.println("enter your  first name");
         String name = scn.nextLine();
@@ -29,14 +29,21 @@ public class Service {
 
         System.out.println("enter your email");
         String email = scn.nextLine();
-        if(emailCheck(email)) throw new IllegalArgumentException("An account with this email already exists");
 
-        submit(name, lastName,password,age,email);
+        Boolean result = true;
+        try {
+             emailCheck(email);
+        }
+        catch (Exception e){result = false;}
+
+        if(result)throw new IllegalArgumentException("An account with this email already exists");
+
+        submit(name, lastName,password,age,normalizeEmail(email));
     }
 
 
 
-    public static User login()throws NoResultException {
+    public static User login()throws IllegalArgumentException {
         Scanner scn = new Scanner(System.in);
         System.out.println("enter your email");
         String userName = scn.nextLine();
@@ -45,18 +52,29 @@ public class Service {
         String password = scn.nextLine();
 
         String finalUserName = userName;
-        User user = SingletonSessionFactory.get().fromTransaction(session -> session.createNativeQuery
-                ("SELECT * FROM user " + "WHERE email = :userName", User.class).setParameter("userName", finalUserName).getSingleResult());
-
+        User user;
+        try {
+           user = SingletonSessionFactory.get().fromTransaction(session -> session.createNativeQuery
+                    ("SELECT * FROM user " + "WHERE email = :userName", User.class).setParameter("userName", finalUserName).getSingleResult());
+        }
+        catch (NoResultException e){
+            throw new IllegalArgumentException("this email does not exist.");
+        }
         if (user.getPassword().equals(password)) {
             System.out.println("Welcome, " + user.getName() + " " + user.getLastName() + "!\n");
-           List<Object[]> emailList =  SingletonSessionFactory.get().fromTransaction(
-                   session -> session.createNativeQuery("SELECT e.code,e.subject,r.email FROM recipients r"
-                           + "JOIN email e ON r.code = e.code"
-                           +"WHERE status = UNREAD"
-                   +"ORDER BY e.date DESC" )).getResultList();
+            List<Object[]> emailList = null;
+            try {
+               emailList = SingletonSessionFactory.get().fromTransaction(
+                        session -> session.createNativeQuery("SELECT e.code,e.subject,e.sender FROM recipients r "
+                                + " JOIN email e ON r.code = e.code "
+                                + " WHERE r.email = :email AND status = 'UNREAD'"
+                                + " ORDER BY e.date DESC").setParameter("email", user.getEmail()).getResultList());
+            }
+            catch (Exception e){
+                System.err.println(e.getMessage());
+            }
            for(Object[] temp:emailList){
-               System.out.println("+" + temp[2] + " - " + temp[1] + " - (" + temp[0] + ")");
+               System.out.println("+ " + temp[2] + " - " + temp[1] + " - (" + temp[0] + ")");
            }
 
             return user;
@@ -92,25 +110,25 @@ public class Service {
 
         switch (userInput){
             case "all":
-                command.set("WHERE r.email = :email");
+                command.set("WHERE r.email = '" + user.getEmail() + "'");
                 break;
             case "unread":
-                command.set("WHERE r.email = :email AND status = UNREAD");
+                command.set(" WHERE r.email = '" + user.getEmail() + "' AND status = 'UNREAD' ");
                 break;
             case "read":
-                command.set("WHERE r.email = :email AND status = READ");
+                command.set("WHERE r.email = '" + user.getEmail() + "' AND status = 'READ'");
                 break;
             case "sent":
-                command.set("WHERE e.sender = :sender");
+                command.set("WHERE e.sender = " + "'" + user.getEmail() + "'");
                 break;
 
         }
 
         List<Object[]> emailList =  SingletonSessionFactory.get().fromTransaction(
-                session -> session.createNativeQuery("SELECT e.code,e.subject,r.email FROM recipients r"
+                session -> session.createNativeQuery("SELECT e.code,e.subject,r.email FROM recipients r "
                         +"JOIN email e ON r.code = e.code "
                         + command.get()
-                        +" ORDER BY e.date DESC" )).setParameter("sender", user.getEmail()).setParameter("email",user.getEmail()).getResultList();
+                        +" ORDER BY e.date DESC" ).getResultList());
 
         for(Object[] temp:emailList){
             System.out.println("+" + temp[2] + " - " + temp[1] + " - (" + temp[0] + ")");
@@ -128,7 +146,7 @@ public class Service {
         for(String customer : temp){
                  if(customer.equals(user.getEmail())){
                  email.showInf(temp);
-                 SingletonSessionFactory.get().inTransaction(session -> session.createMutationQuery("UPDATE recipients SET status = 'READ'" +
+                 SingletonSessionFactory.get().inTransaction(session -> session.createMutationQuery("UPDATE Recipients SET status = 'READ' " +
                  " WHERE email = :email AND code = :code").setParameter("code",code).setParameter("email", user.getEmail()).executeUpdate());
         return;
     }
@@ -138,7 +156,7 @@ public class Service {
     }
 
 
-    public static void reply(User user){
+    public static void reply(User user)throws NoResultException{
         Scanner scn = new Scanner(System.in);
 
         System.out.println("Enter the code of email that you want to respond: ");
@@ -183,9 +201,10 @@ public class Service {
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-private static Email getEmail(String code) {
-    return SingletonSessionFactory.get().fromTransaction(session -> session.createNativeQuery("SELECT * FROM email" +
-            " WHERE code = :code ", Email.class).setParameter("code", code).getSingleResult());
+private static Email getEmail(String code)throws NoResultException {
+
+            return SingletonSessionFactory.get().fromTransaction(session -> session.createNativeQuery("SELECT * FROM email" +
+                    " WHERE code = :code ", Email.class).setParameter("code", code).getSingleResult());
 
 }
 
@@ -212,16 +231,17 @@ private static Email getEmail(String code) {
 
 
     private static boolean emailCheck (String email){
-        email = normalizeEmail(email);
-        List<String> allUsers =
-                SingletonSessionFactory.get().fromTransaction(session -> session.createNativeQuery("SELECT email FROM user").getResultList());
 
-        for (String temp : allUsers){
-            if(temp.equals(email)) return true;
-        }
-        return false;
-
+                try {
+                    SingletonSessionFactory.get().inTransaction(session -> session.createNativeQuery("SELECT email FROM user " +
+                            " WHERE email = :email", String.class).setParameter("email", normalizeEmail(email)).getSingleResult());
+                }
+                catch (NoResultException e){
+                    throw new NoResultException();
+                }
+    return true;
     }
+
 
     private static Email addEmailToDB(User user, String subject, String body, List<String> recipients) {
         Email temp2 = new Email(subject, user.getEmail(), body);
@@ -242,7 +262,7 @@ private static Email getEmail(String code) {
         temp = SingletonSessionFactory.get().fromTransaction(
                 session -> session.createNativeQuery("SELECT r.email FROM recipients r "
                         + " JOIN email e ON r.code = e.code "
-                        + " WHERE r.code = :code ",String.class).setParameter("code", code)).getResultList();
+                        + " WHERE r.code = :code ",String.class).setParameter("code", code).getResultList());
         return temp;
     }
 
@@ -257,8 +277,12 @@ private static Email getEmail(String code) {
         String temp = scn.nextLine();
         while(flag) {
             try {
+                emailCheck(temp);
                 recipients.add(normalizeEmail(temp));
-            } catch (IllegalArgumentException e) {
+            } catch (NoResultException e) {
+                System.err.println("Wrong email, try again.");
+            }
+            catch (Exception e){
                 System.err.println(e.getMessage());
             }
 

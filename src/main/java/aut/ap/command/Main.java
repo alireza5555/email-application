@@ -1,5 +1,6 @@
 package aut.ap.command;
 import aut.ap.model.User;
+import jakarta.persistence.NoResultException;
 
 import java.util.Scanner;
 
@@ -16,11 +17,16 @@ public class Main {
             switch (command) {
                 case "L":
                 case "Login":
-                    try {
-                        user = Service.login();
+                        try {
+                            user = Service.login();
+                        }
+                        catch (IllegalArgumentException e){
+                            System.err.println(e.getMessage());
+                            continue;
+                        }
 
                             while (flag){
-                                System.out.println("Send email: S\nView emails: V\nReply to an email: R\nForward an email: F");
+                                System.out.println("Send email: S\nView emails: V\nReply to an email: R\nForward an email: F\nLogout: E");
                                 command = scn.nextLine();
 
                                 switch(command){
@@ -30,7 +36,8 @@ public class Main {
 
                                     case "V":
                                         while(flag){
-                                            System.out.println("Choose which one you want to see:\n[A]ll emails\n[U]nread\n[S]ent emails\n[R]ead emails\nRead by [C]ode");
+                                            System.out.println("Choose which one you want to see:\n[A]ll emails\n[U]nread\n[S]ent emails\n[R]ead emails\nRead by [C]ode\nExit: E\n");
+                                            command = scn.nextLine();
 
                                             switch (command){
                                                 case "A":
@@ -59,9 +66,19 @@ public class Main {
                                         break;
 
                                     case "R":
-                                        Service.reply(user);
+                                        try {
+                                            Service.reply(user);
+                                        }
+                                        catch (NoResultException e){
+                                            System.err.println("Wrong code, try again.");
+                                        }
+                                        break;
                                     case "F":
                                         Service.forwardEmail(user);
+                                        break;
+                                    case "E":
+                                        flag = false;
+                                        break;
                                     default:
                                         System.err.println("Wrong entry");
                                 }
@@ -69,10 +86,8 @@ public class Main {
 
 
                             }
+                    flag = true;
 
-                    } catch (Exception e) {
-                        System.err.println(e.getMessage());
-                    }
                     break;
                 case "S":
                 case "Sing up":

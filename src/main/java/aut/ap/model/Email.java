@@ -1,5 +1,6 @@
 package aut.ap.model;
 
+import aut.ap.framework.SingletonSessionFactory;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -10,8 +11,7 @@ import java.util.List;
 @Entity
 @Table(name = "email")
 public class Email {
-
-    private static String currentCode = "0";
+    ;
 
     @Id
     private String code ;
@@ -32,11 +32,13 @@ public class Email {
     public Email (){};
 
     private void codeGenerator(){
+        String currentCode = getCurrentCode();
         int temp = Integer.parseInt(currentCode, 36);
         temp ++ ;
         currentCode = Integer.toString(temp, 36);
         currentCode = String.format("%6s", currentCode).replace(' ', '0');
         this.code = currentCode;
+        setCurrentCode(currentCode);
     }
 
     @Override
@@ -56,7 +58,8 @@ public class Email {
     }
 
     public static String getCurrentCode() {
-        return currentCode;
+        String currentCode = SingletonSessionFactory.get().fromTransaction(session -> session.createNativeQuery("SELECT * FROM code",String.class).getSingleResult());
+    return currentCode;
     }
 
 
@@ -83,7 +86,7 @@ public class Email {
 
 
     public static void setCurrentCode(String currentCode) {
-        Email.currentCode = currentCode;
+        SingletonSessionFactory.get().inTransaction(session -> session.createMutationQuery("UPDATE code SET current_code = :code").setParameter("code", currentCode).executeUpdate());
     }
 
 

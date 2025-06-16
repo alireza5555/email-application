@@ -2,7 +2,6 @@ package aut.ap.model;
 
 import jakarta.persistence.*;
 
-
 @Entity
 @Table(name = "user")
 public class User {
@@ -22,6 +21,11 @@ public class User {
         this.lastName = lastName;
         this.name = name;
         this.password = password;
+    }
+
+    @Override
+    public String toString (){
+        return "name: " + name + "\nlastName: " + lastName + "\nage: " + age + "\nemail: " + email + "\npassword: " + password;
     }
 
     public User(){};

@@ -1,6 +1,5 @@
 package aut.ap.model;
 
-
 import jakarta.persistence.*;
 
 @Entity

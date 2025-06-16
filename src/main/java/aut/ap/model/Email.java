@@ -4,7 +4,6 @@ import aut.ap.framework.SingletonSessionFactory;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-
 import java.time.LocalDate;
 import java.util.List;
 

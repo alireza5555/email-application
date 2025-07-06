@@ -1,7 +1,10 @@
 package aut.ap.graphical;
 
 import aut.ap.command.Service;
+import aut.ap.framework.SingletonSessionFactory;
 import aut.ap.model.Email;
+import aut.ap.model.User;
+import jakarta.persistence.NoResultException;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -84,6 +87,48 @@ public class SceneController {
 
     }
 
+    public void login(ActionEvent event) {
+        String emailStr = Service.normalizeEmail(email.getText());
+        String passwordStr = password.getText();
+
+        Boolean conditions = true;
+        User user = null;
+
+        try {
+            user = SingletonSessionFactory.get().fromTransaction(session -> session.createNativeQuery
+                    ("SELECT * FROM user " + "WHERE email = :userName", User.class).setParameter("userName", emailStr).getSingleResult());
+        } catch (NoResultException e) {
+            conditions = false;
+            emailErrorLabel.setText("Wrong email");
+        }
+
+        try {
+            if (user != null && !user.getPassword().equals(passwordStr)) {
+                passwordErrorLabel.setText("Wrong password");
+
+                conditions = false;
+            }
+        }
+            catch(NullPointerException _){}
+
+
+        if(conditions) {
+
+            showPopup("Welcome back, " + user.getName(), "Login succeeded");
+
+            try {
+
+                root = FXMLLoader.load(getClass().getResource("/menu.fxml"));
+                stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+                scene = new Scene(root);
+                stage.setScene(scene);
+                stage.show();
+            } catch (Exception e) {
+                System.err.println(e.getMessage());
+            }
+        }
+    }
+
     public void signUp(ActionEvent event) {
 
         String ageStr = age.getText();
@@ -156,26 +201,29 @@ public class SceneController {
 
     @FXML
     public void initialize() {
-        emailListView.setCellFactory(listView -> new ListCell<Email>() {
-            @Override
-            protected void updateItem(Email item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setGraphic(null);
-                } else {
-                    try {
-                        FXMLLoader loader = new FXMLLoader(getClass().getResource("/email/email-item.fxml"));
-                        Parent root = loader.load();
-                        ItemController controller = loader.getController();
-                        controller.setData(item);
-                        setGraphic(root);
-                    } catch (IOException e) {
-                        e.printStackTrace();
+        if (emailListView != null) {
+            emailListView.setCellFactory(listView -> new ListCell<>() {
+                @Override
+                protected void updateItem(Email item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setGraphic(null);
+                    } else {
+                        try {
+                            FXMLLoader loader = new FXMLLoader(getClass().getResource("/email/email-item.fxml"));
+                            Parent root = loader.load();
+                            ItemController controller = loader.getController();
+                            controller.setData(item);
+                            setGraphic(root);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
-            }
-        });
+            });
+        }
     }
+
 
 
 }

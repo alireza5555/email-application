@@ -18,16 +18,19 @@
                  <Menu mnemonicParsing="false" text="Send">
                      <items>
                          <MenuItem mnemonicParsing="false" text="Send email" />
-                         <MenuItem mnemonicParsing="false" text="Reply email" />
-                         <MenuItem mnemonicParsing="false" text="Forward email" />
                      </items>
                  </Menu>
                  <Menu mnemonicParsing="false" text="View">
                      <items>
                          <MenuItem mnemonicParsing="false" text="All emails" />
+                  <MenuItem mnemonicParsing="false" text="Unread emails" />
+                  <MenuItem mnemonicParsing="false" text="Sent emails" />
                      </items>
                  </Menu>
-                 <Menu mnemonicParsing="false" text="Logout" />
+                 <Menu mnemonicParsing="false" text="Exit">
+               <items>
+                  <MenuItem mnemonicParsing="false" onAction="#logout" text="Logout" />
+               </items></Menu>
              </menus>
          </MenuBar>
    </top>

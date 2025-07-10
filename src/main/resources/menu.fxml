@@ -6,25 +6,25 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="aut.ap.graphical.SceneController">
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="aut.ap.graphical.SceneController">
    <center>
 
-       <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" />
+       <AnchorPane fx:id="contentArea" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" BorderPane.alignment="CENTER" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" />
 
    </center>
    <top>
-         <MenuBar prefHeight="25.0" prefWidth="600.0" BorderPane.alignment="CENTER">
+         <MenuBar prefHeight="25.0" prefWidth="600.0" BorderPane.alignment="TOP_CENTER">
              <menus>
                  <Menu mnemonicParsing="false" text="Send">
                      <items>
-                         <MenuItem mnemonicParsing="false" text="Send email" />
+                         <MenuItem mnemonicParsing="false" onAction="#switchToSendMenu" text="Send email" />
                      </items>
                  </Menu>
                  <Menu mnemonicParsing="false" text="View">
                      <items>
-                         <MenuItem mnemonicParsing="false" text="All emails" />
-                  <MenuItem mnemonicParsing="false" text="Unread emails" />
-                  <MenuItem mnemonicParsing="false" text="Sent emails" />
+                         <MenuItem mnemonicParsing="false" onAction="#showAllEmails" text="All emails" />
+                  <MenuItem mnemonicParsing="false" onAction="#showUnReadEmails" text="Unread emails" />
+                  <MenuItem mnemonicParsing="false" onAction="#showSentEmails" text="Sent emails" />
                      </items>
                  </Menu>
                  <Menu mnemonicParsing="false" text="Exit">

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="522.0" prefWidth="751.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="aut.ap.graphical.SendController">
+   <children>
+      <TextField fx:id="recipients" layoutX="93.0" layoutY="30.0" prefHeight="32.0" prefWidth="609.0" promptText="Seprate Recipients email with Space" />
+      <TextField fx:id="subject" layoutX="93.0" layoutY="76.0" prefHeight="32.0" prefWidth="609.0" />
+      <TextArea fx:id="body" layoutX="13.0" layoutY="189.0" prefHeight="210.0" prefWidth="725.0" />
+      <Button layoutX="345.0" layoutY="427.0" mnemonicParsing="false" onAction="#sendEmail" prefHeight="40.0" prefWidth="61.0" text="Send">
+         <font>
+            <Font size="16.0" />
+         </font>
+      </Button>
+      <Label alignment="CENTER" contentDisplay="CENTER" layoutX="15.0" layoutY="30.0" prefHeight="32.0" prefWidth="68.0" text="Recipients:" textAlignment="CENTER">
+         <font>
+            <Font size="13.0" />
+         </font>
+      </Label>
+      <Label alignment="CENTER" contentDisplay="CENTER" layoutX="15.0" layoutY="76.0" prefHeight="32.0" prefWidth="68.0" text="Subject:" textAlignment="CENTER">
+         <font>
+            <Font size="13.0" />
+         </font>
+      </Label>
+      <Label alignment="CENTER" layoutX="15.0" layoutY="147.0" prefHeight="32.0" prefWidth="68.0" text="Text:">
+         <font>
+            <Font size="14.0" />
+         </font>
+      </Label>
+      <Label fx:id="recipientsError" layoutX="93.0" layoutY="62.0" prefHeight="17.0" prefWidth="493.0" textFill="RED" />
+      <Label fx:id="subjectError" layoutX="93.0" layoutY="108.0" prefHeight="17.0" prefWidth="493.0" textFill="RED" />
+   </children>
+</AnchorPane>

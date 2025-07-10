@@ -33,13 +33,13 @@ public class ItemController {
 
         @FXML
         private void handleReply() {
-            System.out.println("Reply to: " + currentEmail.getCode());
-            // اینجا می‌تونی یه پنجره پاسخ یا کدی برای ارسال ریپلای باز کنی
+
+
         }
 
         @FXML
         private void handleForward() {
-            System.out.println("Forward email: " + currentEmail.getCode());
-            // اینجا هم می‌تونی پنجره فوروارد بزنی یا کد بزاری
+
+
         }
     }

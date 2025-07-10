@@ -2,6 +2,7 @@ package aut.ap.graphical;
 
 import aut.ap.command.Service;
 import aut.ap.framework.SingletonSessionFactory;
+import aut.ap.framework.UserSession;
 import aut.ap.model.Email;
 import aut.ap.model.User;
 import jakarta.persistence.NoResultException;
@@ -22,6 +23,7 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 
 import java.io.IOException;
+import java.util.List;
 
 
 public class SceneController {
@@ -44,13 +46,12 @@ public class SceneController {
     @FXML
     private Label emailErrorLabel;
 
-    @FXML
-    private ListView<Email> emailListView;
 
     private Stage stage;
     private Scene scene;
     private Parent root;
 
+    @FXML
     private AnchorPane contentArea;
 
     public void loadView(String fxml) {
@@ -124,6 +125,7 @@ public class SceneController {
 
         if(conditions) {
 
+            UserSession.set(emailStr);
             showPopup("Welcome back, " + user.getName(), "Login succeeded");
 
             try {
@@ -132,6 +134,7 @@ public class SceneController {
                 stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
                 scene = new Scene(root);
                 stage.setScene(scene);
+                stage.setMaximized(true);
                 stage.show();
             } catch (Exception e) {
                 System.err.println(e.getMessage());
@@ -199,7 +202,60 @@ public class SceneController {
 
     }
 
-    public void showPopup(String text, String title) {
+    public void switchToSendMenu () throws IOException {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/email/send-email.fxml"));
+            AnchorPane view = loader.load();
+            contentArea.getChildren().setAll(view);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void showAllEmails() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/email/show-email.fxml"));
+            AnchorPane view = loader.load();
+            contentArea.getChildren().setAll(view);
+
+            EmailListController controller = loader.getController();
+            List<Email> emailList = getEmails(UserSession.get());
+            controller.setEmailList(emailList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void showUnReadEmails() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/email/show-email.fxml"));
+            AnchorPane view = loader.load();
+            contentArea.getChildren().setAll(view);
+
+            EmailListController controller = loader.getController();
+            List<Email> emailList = getUnReadEmails(UserSession.get());
+            controller.setEmailList(emailList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void showSentEmails() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/email/show-email.fxml"));
+            AnchorPane view = loader.load();
+            contentArea.getChildren().setAll(view);
+
+            EmailListController controller = loader.getController();
+            List<Email> emailList = getSentEmails(UserSession.get());
+            controller.setEmailList(emailList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+        public static void showPopup(String text, String title) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
         alert.setHeaderText(null);
@@ -209,30 +265,22 @@ public class SceneController {
 
     }
 
-    @FXML
-    public void initialize() {
-        if (emailListView != null) {
-            emailListView.setCellFactory(listView -> new ListCell<>() {
-                @Override
-                protected void updateItem(Email item, boolean empty) {
-                    super.updateItem(item, empty);
-                    if (empty || item == null) {
-                        setGraphic(null);
-                    } else {
-                        try {
-                            FXMLLoader loader = new FXMLLoader(getClass().getResource("/email/email-item.fxml"));
-                            Parent root = loader.load();
-                            ItemController controller = loader.getController();
-                            controller.setData(item);
-                            setGraphic(root);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            });
-        }
+
+    public static List<Email> getEmails(String email){
+        return SingletonSessionFactory.get().fromTransaction(session -> session.createNativeQuery("SELECT e.* FROM Recipients r " + " JOIN Email e ON r.code = e.code "
+                + "Where r.email = :email ", Email.class).setParameter("email", email).getResultList());
     }
+
+    public static List<Email> getUnReadEmails (String email){
+        return SingletonSessionFactory.get().fromTransaction(session -> session.createNativeQuery("SELECT e.* FROM Recipients r " + " JOIN Email e ON r.code = e.code "
+                + "Where r.email = :email AND r.status = 'UNREAD'", Email.class).setParameter("email", email).getResultList());
+    }
+
+    public static List<Email> getSentEmails (String email){
+        return SingletonSessionFactory.get().fromTransaction(session -> session.createNativeQuery("SELECT * FROM Email e " +
+                "WHERE e.sender = :email", Email.class).setParameter("email", email).getResultList());
+    }
+
 
 
 

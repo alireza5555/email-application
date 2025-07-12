@@ -13,6 +13,8 @@ public class EmailListController {
     @FXML
     private ListView<Email> emailListView;
 
+    private SceneController sceneController;
+
     @FXML
     public void initialize() {
         if (emailListView != null) {
@@ -27,6 +29,7 @@ public class EmailListController {
                             FXMLLoader loader = new FXMLLoader(getClass().getResource("/email/email-item.fxml"));
                             Parent root = loader.load();
                             ItemController controller = loader.getController();
+                            controller.setSceneController(sceneController);
                             controller.setData(item);
                             setGraphic(root);
                         } catch (Exception e) {
@@ -40,5 +43,9 @@ public class EmailListController {
 
     public void setEmailList(List<Email> emails) {
         emailListView.getItems().setAll(emails);
+    }
+
+    public void setSceneController(SceneController sceneController) {
+        this.sceneController = sceneController;
     }
 }

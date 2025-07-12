@@ -28,6 +28,7 @@ public class SendController {
 
     @FXML
     private Label recipientsError;
+
     @FXML
     private Label subjectError;
 
@@ -80,5 +81,18 @@ public class SendController {
             trueEmails.add(email);
         }});
         return trueEmails;
+    }
+
+    public void setSubject(String subject) {
+        this.subject.setText(subject);
+    }
+
+    public void setBody(String body) {
+        this.body.setText(body);
+    }
+
+    public void setRecipients(String recipients) {
+        this.recipients.setText(recipients);
+        this.recipients.setEditable(false);
     }
 }

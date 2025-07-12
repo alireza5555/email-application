@@ -54,13 +54,23 @@ public class SceneController {
     @FXML
     private AnchorPane contentArea;
 
-    public void loadView(String fxml) {
+    public AnchorPane getContentArea() {
+        return contentArea;
+    }
+
+    public SendController loadView(String fxml) {
+        FXMLLoader loader = null;
         try {
-            AnchorPane view = FXMLLoader.load(getClass().getResource(fxml));
+            loader = new FXMLLoader(getClass().getResource(fxml));
+            AnchorPane view = loader.load();
             contentArea.getChildren().setAll(view);
+
+
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        return loader.getController();
     }
 
 
@@ -220,6 +230,7 @@ public class SceneController {
             contentArea.getChildren().setAll(view);
 
             EmailListController controller = loader.getController();
+            controller.setSceneController(this);
             List<Email> emailList = getEmails(UserSession.get());
             controller.setEmailList(emailList);
         } catch (IOException e) {
@@ -234,6 +245,7 @@ public class SceneController {
             contentArea.getChildren().setAll(view);
 
             EmailListController controller = loader.getController();
+            controller.setSceneController(this);
             List<Email> emailList = getUnReadEmails(UserSession.get());
             controller.setEmailList(emailList);
         } catch (IOException e) {
@@ -248,6 +260,7 @@ public class SceneController {
             contentArea.getChildren().setAll(view);
 
             EmailListController controller = loader.getController();
+            controller.setSceneController(this);
             List<Email> emailList = getSentEmails(UserSession.get());
             controller.setEmailList(emailList);
         } catch (IOException e) {

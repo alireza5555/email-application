@@ -1,5 +1,6 @@
 package aut.ap.command;
 
+import com.sun.tools.javac.Main;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import aut.ap.framework.SingletonSessionFactory;
@@ -13,10 +14,10 @@ import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Service {
-    private static final Logger logger = LogManager.getLogger(Main.class);
+    public static final Logger logger = LogManager.getLogger(Main.class);
 
-    public static void singUp()throws IllegalArgumentException{
-        logger.info("** start singUp method **");
+    public static void signUp()throws IllegalArgumentException{
+        logger.info("** start signUp method **");
 
         Scanner scn = new Scanner(System.in);
         System.out.println("enter your  first name");
@@ -28,10 +29,7 @@ public class Service {
         System.out.println("enter your password");
         String password = scn.nextLine();
 
-        if(password.length() < 8) {
-            logger.warn("user entered weak password: {}", password);
-            throw new IllegalArgumentException("Weak password");
-        }
+        isStrongPass(password);
 
         System.out.println("enter your age");
         int age = scn.nextInt();
@@ -57,7 +55,7 @@ public class Service {
         logger.info("email was ok. now adding information to database");
         submit(name, lastName,password,age,normalizeEmail(email));
 
-        logger.info("** end singUp method **");
+        logger.info("** end signUp method **");
     }
 
 
@@ -137,7 +135,7 @@ public class Service {
         System.out.println("Enter your Email body (press enter at the end of the text)");
         body = scn.nextLine();
 
-        Email temp2 = addEmailToDB(user, subject, body, recipients);
+        Email temp2 = addEmailToDB(user.getEmail(), subject, body, recipients);
         logger.info("email {} sent",temp2);
 
         System.out.println("Successfully sent your email.\n" + "Code: " + temp2.getCode());
@@ -234,7 +232,7 @@ public class Service {
 
         Email oldEmail = getEmail(code);
         logger.info("creating and adding reply email");
-        Email newEmail = addEmailToDB(user, "[RE] " + oldEmail.getSubject(), body,getRecipients(code) );
+        Email newEmail = addEmailToDB(user.getEmail(), "[RE] " + oldEmail.getSubject(), body,getRecipients(code) );
 
         System.out.println("Successfully sent your reply to email " + oldEmail.getCode() + "\nCode: " + newEmail.getCode());
         logger.info("** end reply method **");
@@ -272,7 +270,7 @@ public class Service {
         logger.info("creating new email and adding it to database.");
         Email oldEmail = getEmail(code);
         ArrayList<String> recipients = recordRecipients();
-        Email newEmail = addEmailToDB(user, "[FW] " + oldEmail.getSubject(), oldEmail.getBody(), recipients);
+        Email newEmail = addEmailToDB(user.getEmail(), "[FW] " + oldEmail.getSubject(), oldEmail.getBody(), recipients);
 
         System.out.println("Successfully forwarded your email.\n" + "Code: " + newEmail.getCode());
         logger.info("** end forwardEmail method **");
@@ -280,7 +278,7 @@ public class Service {
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-private static Email getEmail(String code)throws NoResultException {
+public static Email getEmail(String code)throws NoResultException {
         logger.info("* start getEmail method *");
 
             Email temp = SingletonSessionFactory.get().fromTransaction(session -> session.createNativeQuery("SELECT * FROM email" +
@@ -292,7 +290,7 @@ private static Email getEmail(String code)throws NoResultException {
 }
 
 
-    private static String normalizeEmail(String email){
+    public static String normalizeEmail(String email){
         logger.info("* start normalizeEmail method *");
 
         email = email.trim();
@@ -313,7 +311,7 @@ private static Email getEmail(String code)throws NoResultException {
 
 
 
-    private static String submit (String name, String lastName,String password, int age, String email){
+    public static String submit (String name, String lastName,String password, int age, String email){
         logger.info("* start submit method *");
 
         logger.info("adding user with email: {} to database",email);
@@ -325,7 +323,7 @@ private static Email getEmail(String code)throws NoResultException {
 
 
 
-    private static boolean emailCheck (String email){
+    public static boolean emailCheck (String email){
         logger.info("* start emailCheck method *");
 
         logger.info("execute the query to check if email: {} exist.",email);
@@ -342,10 +340,10 @@ private static Email getEmail(String code)throws NoResultException {
     }
 
 
-    private static Email addEmailToDB(User user, String subject, String body, List<String> recipients) {
+    public static Email addEmailToDB(String userEmail, String subject, String body, List<String> recipients) {
         logger.info("* start addEmailToDB method *");
 
-        Email temp2 = new Email(subject, user.getEmail(), body);
+        Email temp2 = new Email(subject, userEmail, body);
         logger.info("trying to add email with code: {} to database ",temp2.getCode());
         try {
             SingletonSessionFactory.get().inTransaction(session -> {
@@ -363,7 +361,7 @@ private static Email getEmail(String code)throws NoResultException {
         return temp2;
     }
 
-    private static List<String> getRecipients(String code) {
+    public static List<String> getRecipients(String code) {
         logger.info("* start getRecipients method *");
 
         List<String> temp ;
@@ -380,7 +378,7 @@ private static Email getEmail(String code)throws NoResultException {
     }
 
 
-    private static ArrayList<String> recordRecipients() {
+    public static ArrayList<String> recordRecipients() {
         logger.info("* start recordRecipients method *");
 
         Scanner scn = new Scanner(System.in);
@@ -414,7 +412,7 @@ private static Email getEmail(String code)throws NoResultException {
     }
 
 
-    private static boolean checkUser(String code, String email) {
+    public static boolean checkUser(String code, String email) {
         logger.info("* start checkUser method *");
 
         logger.info("execute the query to see if user with email: {} exist in database",email);
@@ -438,6 +436,12 @@ private static Email getEmail(String code)throws NoResultException {
         return true;
     }
 
+    public static void isStrongPass(String password) {
+        if(password.length() < 8) {
+            logger.warn("user entered weak password: {}", password);
+            throw new IllegalArgumentException("Weak password");
+        }
+    }
 
 
 

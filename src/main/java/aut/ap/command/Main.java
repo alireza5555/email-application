@@ -1,24 +1,28 @@
+
 package aut.ap.command;
 import aut.ap.model.User;
 import jakarta.persistence.NoResultException;
+import javafx.application.Application;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import java.util.Scanner;
 
 public class Main {
+
     private static final Logger logger = LogManager.getLogger(Main.class);
 
     public static void main(String[] args) {
         logger.info("===== NEW RUN =====" );
+
 
         User user = null ;
         Scanner scn = new Scanner(System.in);
         Boolean flag = true;
 
         while (true) {
-            logger.info("-- Entering login/sing up menu --");
+            logger.info("-- Entering login/sign up menu --");
 
-        System.out.println("Send L for login\nSend S for sing-up\nSend E for Exit");
+        System.out.println("Send L for login\nSend S for sign-up\nSend E for Exit");
         String command = scn.nextLine();
 
             switch (command) {
@@ -103,9 +107,9 @@ public class Main {
 
                     break;
                 case "S":
-                case "Sing up":
+                case "sign up":
                     try {
-                        Service.singUp();
+                        Service.signUp();
                     } catch (Exception e) {
                         System.out.println(e.getMessage());
                     }
